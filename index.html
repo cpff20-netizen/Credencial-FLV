@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JNE — Descarga de Credencial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ╔══════════════════════════════════════════════════════════╗
+        ║  NUEVO SISTEMA DE ENCUADRE (Más estable e intuitivo)     ║
+        ║  - zoom: Nivel de aumento (1.0 es normal, 1.5 es +50%)   ║
+        ║  - x: Mueve el PDF horizontalmente                       ║
+        ║       (Ej: Valores positivos mueven a la DERECHA)        ║
+        ║  - y: Mueve el PDF verticalmente                         ║
+        ║       (Ej: Valores positivos mueven ABAJO)               ║
+        ╚══════════════════════════════════════════════════════════╝ */
+    :root {
+      --zoom: 1.3;   /* Zoom al 130% solicitado */
+      --x: 15%;      /* Ajustado hacia la derecha */
+      --y: 0%;       /* Centrado en vertical */
+
+      --bg: #0a0d15;
+      --s1: #111520;
+      --s2: #171c2a;
+      --bd: rgba(255,255,255,0.055);
+      --bd2: rgba(255,255,255,0.09);
+      --t1: #edf0f7;
+      --t2: #6b7394;
+      --t3: #474e6b;
+      --br: #c0392b;
+      --br2: #e74c3c;
+      --brg: rgba(192,57,43,0.15);
+      --ok: #00b894;
+      --okg: rgba(0,184,148,0.12);
+      --wn: #fdcb6e;
+      --r: 16px;
+      --rx: 22px;
+      --f: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --m: 'Space Mono', monospace;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    body{font-family:var(--f);background:var(--bg);color:var(--t1);min-height:100dvh}
+
+    body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse 800px 500px at 5% 5%,rgba(192,57,43,.04),transparent),radial-gradient(ellipse 600px 400px at 95% 95%,rgba(192,57,43,.03),transparent);pointer-events:none}
+
+    .app{position:relative;z-index:1;max-width:1380px;margin:0 auto;padding:16px 20px 48px}
+
+    /* HEADER */
+    .hd{display:flex;align-items:center;justify-content:space-between;padding:14px 0 20px;margin-bottom:24px;border-bottom:1px solid var(--bd)}
+    .hd-l{display:flex;align-items:center;gap:14px}
+    .hd-lg{width:40px;height:40px;border-radius:10px;background:var(--br);display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;letter-spacing:-.03em;box-shadow:0 2px 12px rgba(192,57,43,.3)}
+    .hd-t{font-weight:700;font-size:.95rem;letter-spacing:-.01em}
+    .hd-t small{display:block;font-weight:500;font-size:.73rem;color:var(--t2);margin-top:1px}
+    .hd-p{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;background:var(--s2);border:1px solid var(--bd);font-size:.72rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.04em}
+    .hd-p i{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok);animation:bl 2s ease infinite}
+    @keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+
+    /* GRID */
+    .g{display:grid;grid-template-columns:370px 1fr;gap:20px;align-items:start}
+
+    /* FORM */
+    .fm{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rx);padding:30px 26px 28px;position:sticky;top:20px}
+    .tg{font-family:var(--m);font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--br2);margin-bottom:14px}
+    h1{font-size:1.75rem;font-weight:800;letter-spacing:-.04em;line-height:1.15;margin-bottom:10px}
+    .sb{font-size:.88rem;color:var(--t2);line-height:1.65;margin-bottom:30px}
+    .lb{display:block;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+    .iw{position:relative;margin-bottom:14px}
+    
+    .iw input{
+      width:100%;
+      height:54px;
+      border-radius:12px;
+      border:2px solid #3b4560;
+      background:#222a3f;
+      color:#ffffff;
+      padding:0 54px 0 18px;
+      font-family:var(--m);
+      font-size:1.15rem;
+      font-weight:700;
+      letter-spacing:.18em;
+      outline:none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition:.2s ease;
+    }
+    .iw input::placeholder{font-family:var(--f);font-weight:500;letter-spacing:0;color:#94a0b8;font-size:.92rem;opacity:1}
+    .iw input:focus{
+      border-color:var(--br);
+      background:#2a334d;
+      box-shadow:0 0 0 4px var(--brg);
+    }
+    
+    .ck{position:absolute;right:14px;top:50%;transform:translateY(-50%) scale(0);width:28px;height:28px;border-radius:50%;background:var(--ok);display:grid;place-items:center;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+    .ck.on{transform:translateY(-50%) scale(1)}
+    .ck svg{width:14px;height:14px;color:#fff}
+    .hn{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--t2);min-height:22px;margin-bottom:26px}
+    .hnd{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--t3);opacity:.5;transition:.2s ease}
+    .hnd.ok{background:var(--ok);opacity:1;box-shadow:0 0 0 4px var(--okg)}
+    .hnd.mid{background:var(--wn);opacity:1}
+
+    .ac{display:grid;gap:10px}
+    .ac.c2{grid-template-columns:1fr 1fr}
+    .ac.c3{grid-template-columns:1fr 1fr 1fr}
+    .bt{height:48px;border:none;border-radius:12px;font-family:var(--f);font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s ease,box-shadow .2s ease,opacity .2s ease}
+    .bt:hover:not(:disabled){transform:translateY(-1px)}
+    .bt:active:not(:disabled){transform:translateY(0)}
+    .bt:disabled{opacity:.2;cursor:not-allowed}
+    .bt svg{width:16px;height:16px;flex-shrink:0}
+    .b1{background:var(--br);color:#fff;box-shadow:0 4px 16px rgba(192,57,43,.25)}
+    .b1:hover:not(:disabled){box-shadow:0 6px 24px rgba(192,57,43,.35)}
+    .b2{background:var(--s2);color:var(--t1);border:1px solid var(--bd)}
+    .b2:hover:not(:disabled){border-color:var(--bd2)}
+    .bs{background:linear-gradient(135deg,#2d3436,#636e72);color:#fff;display:none}
+    .bs.on{display:flex}
+
+    /* VIEWER */
+    .vw{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rx);overflow:hidden;display:flex;flex-direction:column}
+    .vb{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--bd);background:var(--s2)}
+    .vbl{display:flex;align-items:center;gap:10px}
+    .vfi{width:30px;height:30px;border-radius:8px;background:var(--brg);display:grid;place-items:center}
+    .vfi svg{width:14px;height:14px;color:var(--br2)}
+    .vfn{font-size:.85rem;font-weight:600}
+    .cp{padding:4px 11px;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .cp.i{background:rgba(107,115,148,.1);border:1px solid rgba(107,115,148,.15);color:var(--t2)}
+    .cp.g{background:rgba(0,184,148,.1);border:1px solid rgba(0,184,148,.2);color:var(--ok)}
+
+    .vc{flex:1;display:flex;align-items:center;justify-content:center;min-height:520px;position:relative;background:var(--bg)}
+
+    /* CROP — ACTUALIZADO CON TRANSLATE (Mejor precisión) */
+    .cr{display:none;position:absolute;inset:0;overflow:hidden}
+    .cr.on{display:block}
+    .cr iframe{
+      border:none;
+      position:absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      top: 0;
+      /* Escala desde el centro exacto, y luego desplaza X e Y */
+      transform: scale(var(--zoom)) translate(var(--x), var(--y));
+    }
+
+    .em{text-align:center;max-width:320px}
+    .ei{width:68px;height:68px;border-radius:18px;background:var(--s2);border:1px solid var(--bd);display:grid;place-items:center;margin:0 auto 18px}
+    .ei svg{width:28px;height:28px;color:var(--t3);opacity:.4}
+    .em h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+    .em p{font-size:.86rem;color:var(--t2);line-height:1.6}
+
+    .lo{position:absolute;inset:0;background:rgba(10,13,21,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:10}
+    .lo.on{display:flex}
+    .ls{width:38px;height:38px;border:3px solid rgba(192,57,43,.15);border-top-color:var(--br);border-radius:50%;animation:sp .7s linear infinite}
+    @keyframes sp{to{transform:rotate(360deg)}}
+    .lt{font-size:.83rem;color:var(--t2)}
+
+    /* MARCA DE AGUA FLOTANTE */
+    .watermark {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(17, 21, 32, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.45);
+      z-index: 9999;
+      pointer-events: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      letter-spacing: 0.02em;
+    }
+
+    @media(max-width:960px){.g{grid-template-columns:1fr}.fm{position:static}.vc{min-height:400px}}
+    @media(max-width:600px){
+      :root {
+        /* Ajustes EXCLUSIVOS para pantallas de celular */
+        --zoom: 1.4;  /* En móvil suele requerir un poco más de zoom */
+        --x: 12%;     /* Recuperado el ajuste horizontal anterior */
+        --y: 15%;     /* Desplazamiento vertical al 15% solicitado */
+      }
+      
+      .app{padding:10px 12px 36px}
+      .fm{padding:24px 20px}
+      h1{font-size:1.45rem}
+      .ac.c2,.ac.c3{grid-template-columns:1fr}
+      .hd{flex-wrap:wrap;gap:10px}
+      .vc{min-height:340px}
+      
+      .watermark {
+        bottom: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        font-size: 0.65rem;
+      }
+    }
+
+    @keyframes ri{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .g>:nth-child(1){animation:ri .4s ease both}
+    .g>:nth-child(2){animation:ri .4s ease .06s both}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hd">
+      <div class="hd-l">
+        <div class="hd-lg">JNE</div>
+        <div class="hd-t">Descarga de Credencial<small>Jurado Nacional de Elecciones</small></div>
+      </div>
+      <div class="hd-p"><i></i> Servicio activo</div>
+    </div>
+
+    <div class="g">
+      <aside class="fm">
+        <div class="tg">Consulta</div>
+        <h1>Busca y descarga<br>tu credencial</h1>
+        <p class="sb">Ingresa tu número de DNI para visualizar y descargar tu credencial de fiscalización electoral en formato PDF.</p>
+
+        <label class="lb" for="dni">DNI</label>
+        <div class="iw">
+          <input id="dni" type="text" inputmode="numeric" maxlength="8" placeholder="8 dígitos" autocomplete="off"/>
+          <div class="ck" id="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="hn">
+          <span class="hnd" id="hd"></span>
+          <span id="ht">Ingresa tu DNI para continuar</span>
+        </div>
+
+        <div class="ac c2" id="ac">
+          <button class="bt b1" id="vb" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Ver</button>
+          <button class="bt b2" id="db" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Descargar</button>
+          <button class="bt bs" id="sb" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir</button>
+        </div>
+      </aside>
+
+      <section class="vw">
+        <div class="vb">
+          <div class="vbl">
+            <div class="vfi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <span class="vfn" id="fn">Vista previa</span>
+          </div>
+          <span class="cp i" id="cp">En espera</span>
+        </div>
+        <div class="vc" id="vc">
+          <div class="cr" id="cr"></div>
+          <div class="em" id="em">
+            <div class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+            <h3>Credencial no cargada</h3>
+            <p>Ingresa un DNI válido y pulsa <strong>Ver</strong> para previsualizar.</p>
+          </div>
+          <div class="lo" id="lo">
+            <div class="ls"></div>
+            <span class="lt">Cargando credencial…</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- DIV FLOTANTE DEL CREADOR -->
+  <div class="watermark">Creado por Christian F.</div>
+
+  <script>
+    const B='https://sites.jne.gob.pe/logindnfpe/images/20260413_XXXXXXXX.pdf';
+    const $=id=>document.getElementById(id);
+    const inp=$('dni'),ck=$('ck'),hd=$('hd'),ht=$('ht'),vb=$('vb'),db=$('db'),sb=$('sb'),
+          ac=$('ac'),cr=$('cr'),em=$('em'),lo=$('lo'),fn=$('fn'),cp=$('cp');
+    const sn=v=>v.replace(/\D/g,'').slice(0,8);
+    const vl=v=>/^\d{8}$/.test(v);
+    const mu=d=>B.replace('XXXXXXXX',d);
+    const mb=()=>/Android|iPhone|iPod|Windows Phone/i.test(navigator.userAgent);
+    const cs=()=>mb()&&typeof navigator.share==='function';
+    let cF=null;
+
+    function ui(){
+      const v=sn(inp.value);inp.value=v;const o=vl(v);
+      vb.disabled=db.disabled=sb.disabled=!o;
+      ck.classList.toggle('on',o);
+      hd.className='hnd'+(o?' ok':v.length?' mid':'');
+      ht.textContent=!v?'Ingresa tu DNI para continuar':o?'DNI válido — listo para consultar':v.length+' de 8 dígitos';
+      if(cs()){sb.classList.add('on');ac.classList.remove('c2');ac.classList.add('c3')}
+    }
+
+    async function pv(){
+      const v=sn(inp.value);if(!vl(v))return;
+      if(cF){cF.remove();cF=null}
+      em.style.display='none';lo.classList.add('on');
+      cp.className='cp i';cp.textContent='Cargando…';
+      fn.textContent='Credencial_'+v+'.pdf';
+      const u=mu(v);
+      try{const r=await fetch(u);if(r.ok){const b=await r.blob();if(b.size>500){mk(URL.createObjectURL(b));return}}}catch{}
+      mk('https://docs.google.com/gview?embedded=true&url='+encodeURIComponent(u),8000);
+    }
+
+    function mk(src,t){
+      const f=document.createElement('iframe');
+      f.src=src;f.title='Credencial';
+      f.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups');
+      let d=false;
+      const fin=()=>{if(d)return;d=true;lo.classList.remove('on');cp.className='cp g';cp.textContent='Cargado'};
+      f.onload=fin;
+      if(t)setTimeout(fin,t);
+      cr.appendChild(f);cr.classList.add('on');cF=f;
+    }
+
+    async function dl(){
+      const v=sn(inp.value);if(!vl(v))return;
+      const u=mu(v),n='Credencial_'+v+'.pdf';
+      try{const r=await fetch(u);if(!r.ok)throw 0;const b=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove()}catch{window.open(u,'_blank','noopener')}
+    }
+
+    // NUEVA FUNCIÓN SH (Compartir) CORREGIDA
+    async function sh(){
+      const v=sn(inp.value);if(!vl(v)||!cs())return;
+      const u=mu(v),n='Credencial_'+v+'.pdf';
+      
+      try {
+        const r = await fetch(u);
+        const b = await r.blob();
+        const file = new File([b], n, {type: 'application/pdf'});
+        
+        // 1. Intenta compartir el archivo PDF nativamente
+        if (navigator.canShare?.({files: [file]})) {
+          await navigator.share({title: 'Credencial JNE', files: [file]});
+        } else {
+          // Si el dispositivo no soporta compartir el archivo, comparte el enlace.
+          await navigator.share({title: 'Credencial JNE', url: u});
+        }
+      } catch (e) {
+        // Ignoramos el error si el usuario simplemente cerró el menú de compartir ('AbortError')
+        if (e.name !== 'AbortError') {
+          // Si falló por otra razón (ej. CORS), comparte el enlace de emergencia sin abrir ventanas.
+          try { 
+            await navigator.share({title: 'Credencial JNE', url: u}); 
+          } catch(err) {}
+        }
+      }
+    }
+
+    inp.addEventListener('input',ui);
+    vb.addEventListener('click',pv);
+    db.addEventListener('click',dl);
+    sb.addEventListener('click',sh);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&vl(inp.value))pv()});
+    ui();
+  </script>
+</body>
+</html>
